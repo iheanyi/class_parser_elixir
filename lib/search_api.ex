@@ -79,8 +79,7 @@ defmodule SearchApi do
       {:error, reason} -> IO.puts 'Error starting the cookie agent.'
                           CookieAgent.set(:cookie, actual_cookie)
     end
-    # Let's have our cookie agent handle the state.
-    #{:ok,  cookie_agent} = CookieAgent.start_link(actual_cookie)
+
     
     actual_cookie
   end
@@ -88,16 +87,22 @@ defmodule SearchApi do
   def fetch_term_department_courses(cookie, term, department_code, offset) do
     # Gonna have to recursively call this one, probably, in order to get every
     # single department that we need.
+    cookie_header = CookieAgent.get(:cookie)
+
     IO.puts CookieAgent.get(:cookie)
     json_response =
     HTTPoison.get!("#{@search_result_url}/searchResults?txt_subject=#{department_code}&txt_term=#{term}&startDatepicker=&endDatepicker=&pageOffset=#{offset}&pageMaxSize=299&sortColumn=subjectDescription&sortDirection=asc",
-    ['Cookie': cookie]).body 
+    ['Cookie': cookie_header]).body 
     |> Poison.decode!
 
-    IO.puts json_response
+    #Enum.map(json_response, fn {k,v} -> IO.puts "%{k}: #{v}" end)
+    
     if(!json_response["success"]) do
       # The call failed for some reason, probably unauthenticated.
-      IO.puts("The API call failed.")
+      IO.puts("The API call failed. Reauthenticate.")
+      authenticate_request 
+      fetch_term_department_courses(cookie, term, department_code, offset)
+       # Reauthenticate and retry the same request.
     end
 
     json_response
