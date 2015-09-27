@@ -2,15 +2,9 @@ defmodule SearchApi do
   @base_url  "https://ssb.cc.nd.edu/StudentRegistrationSsb/ssb"
   @term_url  "#{@base_url}/classSearch"
   @search_result_url  "#{@base_url}/searchResults"
-  #@searcher = HTTPoison
-  #@cookie_agent = authenticate_request('')
+  #  @cookie_agent = elem(CookieAgent.start_link(''), 1)
 
-  CookieAgent.start_link('')
-  def test_print do
-    IO.puts "Hello World by Iheanyi!"
-  end
- 
-  def fetch_everything do
+    def fetch_everything do
     cookie = authenticate_request 
     fetch_terms
     |> Enum.map(fn(term) -> fetch_term_departments(term["code"], cookie) end)
